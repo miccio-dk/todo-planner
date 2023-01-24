@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <script src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.1/css/bulma.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css">
+</head>
+
+<body>
+    <div x-data="{ tasks: {}, selectedTasks: [], kanbanTasks: {}, collapseStates: {} }" x-init="fetch('/todos')
+  .then(response => response.json())
+  .then(json => { 
+    tasks = json; 
+    kanbanTasks = Object.fromEntries(['doing', 'done'].map(s => [s, listTasksWithIcons(tasks, s)])); 
+    collapseStates = Object.fromEntries(Object.keys(tasks).map(c => [c, false]));
+})">
+
+        <!-- header -->
+        <section class="hero is-primary is-small">
+            <div class="hero-body">
+                <p class="title">Tasks manager</p>
+            </div>
+            <div x-text="JSON.stringify(collapseStates)"></div>
+        </section>
+
+        <!-- task list -->
+        <section class="section pb-0">
+            <div class="container">
+                <h2 class="subtitle">Task list</h2>
+                <template x-for="category in Object.keys(tasks)" :key="category">
+                    <nav x-show="tasks[category].todo.length > 0" class="panel is-info">
+                        <p class="panel-heading" @click="collapseStates[category] = !collapseStates[category]">
+                            <span class="icon is-small mr-2">
+                                <i class="fa-solid fa-fw" :class="`fa-${tasks[category].tags.icon}`"></i>
+                            </span>
+                            <span x-text="category"></span>
+                        </p>
+                        <template x-for="task in tasks[category].todo" :key="task">
+                            <a class="panel-block is-active"
+                                @click="selectedTasks.push([task, tasks[category].tags.icon]); tasks[category].todo = tasks[category].todo.filter(e => e !== task)"
+                                x-show="!collapseStates[category]">
+                                <span x-text="task"></span>
+                            </a>
+                        </template>
+                    </nav>
+                </template>
+            </div>
+        </section>
+
+        <!-- kanban board -->
+        <section class="section">
+            <div class="container">
+                <h2 class="subtitle">Kanban Board</h2>
+                <div class="columns is-multiline is-centered">
+                    <!-- current todos column -->
+                    <div class="column">
+                        <nav class="panel is-info">
+                            <p class="panel-heading">today's todo</p>
+                            <template x-for="[task, icon] in selectedTasks" :key="task">
+                                <a class="panel-block is-active"
+                                    @click="kanbanTasks.doing.push([task, icon]); selectedTasks = selectedTasks.filter(e => e[0] !== task && e[0] !== icon)">
+                                    <span class="panel-icon">
+                                        <i class="fa-solid" :class="`fa-${icon}`"></i>
+                                    </span>
+                                    <span x-text="task"></span>
+                                </a>
+                            </template>
+                            <!-- task placeholder -->
+                            <template x-if="selectedTasks.length === 0">
+                                <span class="panel-block has-text-grey">
+                                    <span class="panel-icon">
+                                        <i class="fa-solid fa-question"></i>
+                                    </span>
+                                    <span>no tasks added</span>
+                                </span>
+                            </template>
+                        </nav>
+                    </div>
+                    <!-- other columns -->
+                    <template x-for="status in Object.keys(kanbanTasks)" :key="status">
+                        <div class="column">
+                            <nav class="panel is-info">
+                                <p class="panel-heading" x-text="status"></p>
+                                <template x-for="[task, icon] in kanbanTasks[status]" :key="task">
+                                    <a class="panel-block is-active"
+                                        @click="if(status === 'doing') { kanbanTasks.done.push([task, icon]); kanbanTasks.doing = kanbanTasks.doing.filter(e => e[0] !== task && e[0] !== icon) }">
+                                        <span class="panel-icon">
+                                            <i class="fa-solid" :class="`fa-${icon}`"></i>
+                                        </span>
+                                        <span x-text="task"></span>
+                                    </a>
+                                </template>
+                                <!-- task placeholder -->
+                                <template x-if="kanbanTasks[status].length === 0">
+                                    <span class="panel-block has-text-grey">
+                                        <span class="panel-icon">
+                                            <i class="fa-solid fa-question"></i>
+                                        </span>
+                                        <span>no tasks here</span>
+                                    </span>
+                                </template>
+                            </nav>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </section>
+
+    </div>
+    <script>
+        function listTasksWithIcons(tasks, status) {
+            console.log('aaa');
+            const taskIconList = Object.keys(tasks).map(category => tasks[category][status].map(task => [task, tasks[category].tags.icon])).flat()
+            return taskIconList
+        }
+    </script>
+</body>
+
+</html>
