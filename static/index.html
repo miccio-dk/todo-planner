@@ -12,7 +12,7 @@
   .then(response => response.json())
   .then(json => { 
     tasks = json; 
-    kanbanTasks = Object.fromEntries(['doing', 'done'].map(s => [s, listTasksWithIcons(tasks, s)])); 
+    kanbanTasks = Object.fromEntries(['doing', 'pending', 'done'].map(s => [s, listTasksWithIcons(tasks, s)])); 
     collapseStates = Object.fromEntries(Object.keys(tasks).map(c => [c, false]));
 })">
 
@@ -21,7 +21,6 @@
             <div class="hero-body">
                 <p class="title">Tasks manager</p>
             </div>
-            <div x-text="JSON.stringify(collapseStates)"></div>
         </section>
 
         <!-- task list -->
@@ -84,7 +83,14 @@
                                 <p class="panel-heading" x-text="status"></p>
                                 <template x-for="[task, icon] in kanbanTasks[status]" :key="task">
                                     <a class="panel-block is-active"
-                                        @click="if(status === 'doing') { kanbanTasks.done.push([task, icon]); kanbanTasks.doing = kanbanTasks.doing.filter(e => e[0] !== task && e[0] !== icon) }">
+                                        @click="
+                                        if(status === 'doing') { 
+                                            kanbanTasks.pending.push([task, icon]); 
+                                            kanbanTasks.doing = kanbanTasks.doing.filter(e => e[0] !== task && e[0] !== icon);
+                                        } else if (status === 'pending') {
+                                            kanbanTasks.done.push([task, icon]); 
+                                            kanbanTasks.pending = kanbanTasks.pending.filter(e => e[0] !== task && e[0] !== icon);
+                                        }">
                                         <span class="panel-icon">
                                             <i class="fa-solid" :class="`fa-${icon}`"></i>
                                         </span>

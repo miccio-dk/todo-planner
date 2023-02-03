@@ -20,13 +20,15 @@ def read_todos():
                     tags = {k.strip(): v.strip() for k, v in tags_list}
                     current_cat = current_cat[:attr_idx].strip()
                 assert current_cat not in todos
-                todos[current_cat] = { 'todo': [], 'doing': [], 'done': [], 'tags': tags }
+                todos[current_cat] = { 'todo': [], 'doing': [], 'done': [], 'pending': [], 'tags': tags }
             elif line.startswith('- '):
                 todos[current_cat]['todo'].append(line[2:].strip())
             elif line.startswith('. '):
                 todos[current_cat]['doing'].append(line[2:].strip())
             elif line.startswith('x '):
                 todos[current_cat]['done'].append(line[2:].strip())
+            elif line.startswith('_ '):
+                todos[current_cat]['pending'].append(line[2:].strip())
     return todos
 
 
